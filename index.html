@@ -20,12 +20,12 @@
 
         /* Default Day Background */
         body {
-            background: linear-gradient(135deg, #74ebd5, #9face6); /* Light Blue */
+            background: linear-gradient(135deg, #74ebd5, #9face6); 
         }
         
         /* Nighttime Class */
         body.night {
-            background: linear-gradient(135deg, #2c3e50, #4a5d6f); /* Dark Blue/Gray */
+            background: linear-gradient(135deg, #2c3e50, #4a5d6f); 
         }
 
         /* --- Page Container Styles --- */
@@ -46,7 +46,7 @@
         }
 
         /* --- Card Styles --- */
-        .input-card, .weather-card {
+        .input-card {
             background-color: rgba(255, 255, 255, 0.95);
             padding: 30px;
             border-radius: 20px;
@@ -55,6 +55,14 @@
             backdrop-filter: blur(5px);
         }
 
+        /* KEY CHANGE: Make the weather-card content transparent on the details page */
+        #details-page .weather-card {
+            background-color: transparent;
+            padding: 0;
+            box-shadow: none;
+            backdrop-filter: none;
+        }
+        
         h1 {
             font-weight: 600;
             color: #333;
@@ -77,7 +85,7 @@
             width: 100%;
             padding: 12px;
             border: none;
-            background: linear-gradient(45deg, #ff5e62, #ff9966); /* Sunset Gradient */
+            background: linear-gradient(45deg, #ff5e62, #ff9966); 
             color: white; 
             font-size: 18px;
             font-weight: 600;
@@ -91,39 +99,44 @@
             transform: translateY(-2px);
         }
         
-        /* --- Weather Details Styles --- */
+        /* --- Weather Details Styles (Adjusted for transparency) --- */
         #weather-info-details h2 {
-            font-size: 24px;
+            font-size: 28px;
             font-weight: 700;
             margin: 5px 0 15px 0;
-            color: #555;
+            color: white;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
         }
 
         #weather-icon {
             width: 100px;
             height: 100px;
             margin: 10px auto 15px auto;
+            filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.3));
         }
 
         #temperature {
-            font-size: 60px;
+            font-size: 80px; 
             font-weight: 700;
             margin: 0;
-            color: #333;
+            color: white;
             line-height: 1;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.6);
         }
         
         #feels-like {
-            font-size: 14px;
-            color: #888;
+            font-size: 16px;
+            color: #f0f0f0; 
             margin-bottom: 5px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
         }
 
         #description {
-            font-size: 18px;
+            font-size: 20px;
             text-transform: capitalize;
-            color: #555;
+            color: white;
             margin-bottom: 20px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
         }
 
         /* AQI Styling */
@@ -137,10 +150,11 @@
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
-        /* AQI Level Colors */
+        /* AQI Level Colors (These are the "real-time" status colors based on the API index 1-5) */
+        .aqi-display { text-align: center; }
         .aqi-1 { background-color: #55a84f; } /* Good */
         .aqi-2 { background-color: #a3c853; } /* Fair */
-        .aqi-3 { background-color: #fdd64b; } /* Moderate */
+        .aqi-3 { background-color: #fdd64b; color: #333;} /* Moderate */
         .aqi-4 { background-color: #ff8a3d; } /* Poor */
         .aqi-5 { background-color: #ff5555; } /* Very Poor */
 
@@ -149,42 +163,46 @@
             grid-template-columns: 1fr 1fr;
             gap: 15px;
             margin-top: 10px;
-            padding-top: 15px;
-            border-top: 1px solid #eee;
+            padding: 15px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
         }
         
         .data-item {
             text-align: left;
-            padding: 10px;
-            background: #f7f7f7;
-            border-radius: 8px;
+            padding: 5px;
         }
         
         .data-item span {
             display: block;
             font-size: 12px;
-            color: #888;
+            color: #d0d0d0;
+            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
         }
         
         .data-item strong {
-            font-size: 16px;
+            font-size: 18px;
             font-weight: 600;
-            color: #333;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
         }
 
         #back-btn {
             margin-top: 25px;
             padding: 10px 20px;
             border: none;
-            background-color: #54a0ff;
+            background-color: rgba(255, 255, 255, 0.2);
             color: white;
             border-radius: 10px;
             cursor: pointer;
             transition: background-color 0.2s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
         
         #back-btn:hover {
-            background-color: #3a7bd5;
+            background-color: rgba(255, 255, 255, 0.4);
         }
     </style>
 </head>
@@ -206,10 +224,13 @@
             
             <div id="temp-section">
                 <span id="temperature"></span>
-                <span id="feels-like"></span> <span id="description"></span>
+                <span id="feels-like"></span> 
+                <span id="description"></span>
             </div>
 
-            <div id="aqi-display"></div> <div class="data-grid">
+            <div id="aqi-display"></div> 
+
+            <div class="data-grid">
                 <div class="data-item">
                     <span>HUMIDITY</span>
                     <strong id="humidity"></strong>
@@ -244,9 +265,9 @@
         const cityNameHeader = document.getElementById("city-name-header");
         const weatherIcon = document.getElementById("weather-icon");
         const temperature = document.getElementById("temperature");
-        const feelsLike = document.getElementById("feels-like"); // NEW
+        const feelsLike = document.getElementById("feels-like");
         const description = document.getElementById("description");
-        const aqiDisplay = document.getElementById("aqi-display"); // NEW
+        const aqiDisplay = document.getElementById("aqi-display");
         const humidity = document.getElementById("humidity");
         const windSpeed = document.getElementById("wind-speed");
         const pressure = document.getElementById("pressure"); 
@@ -259,6 +280,7 @@
         const AQI_URL = "https://api.openweathermap.org/data/2.5/air_pollution";
         const ICON_URL = "https://openweathermap.org/img/wn/"; 
         
+        // AQI status mapping (1 is best, 5 is worst)
         const AQI_STATUS = {
             1: "Good", 2: "Fair", 3: "Moderate", 
             4: "Poor", 5: "Very Poor"
@@ -323,12 +345,12 @@
 
             } catch (error) {
                 alert(error.message);
-                // Clear any previous AQI data if the first call failed
                 aqiDisplay.textContent = ""; 
             }
         }
         
         async function fetchAirQuality(lat, lon) {
+            // This API returns the AQI index (1-5) as the 'main.aqi' value, which is the "real-time value"
             const aqiUrl = `${AQI_URL}?lat=${lat}&lon=${lon}&appid=${API_KEY}`;
              try {
                 const response = await fetch(aqiUrl);
@@ -350,7 +372,6 @@
 
             cityNameHeader.textContent = data.name;
             
-            // Set Icon
             weatherIcon.src = `${ICON_URL}${iconCode}@2x.png`;
             weatherIcon.alt = data.weather[0].description;
             
@@ -358,7 +379,7 @@
             temperature.textContent = `${Math.round(data.main.temp)}°C`;
             description.textContent = data.weather[0].description;
             
-            // NEW: Feels Like Temperature
+            // "Feels Like" is now included
             feelsLike.textContent = `Feels like: ${Math.round(data.main.feels_like)}°C`;
             
             // Display extra data
@@ -369,12 +390,13 @@
         }
 
         function displayAirQuality(data) {
+            // Retrieve the AQI index (the real-time value)
             const aqi = data.list[0].main.aqi;
             const status = AQI_STATUS[aqi];
             
             aqiDisplay.textContent = `Air Quality Index (AQI): ${aqi} (${status})`;
             
-            // Apply color class
+            // Apply color class based on the index
             aqiDisplay.className = `aqi-display aqi-${aqi}`;
         }
     </script>

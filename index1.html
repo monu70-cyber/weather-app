@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather App</title>
+    
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #74ebd5, #9face6);
+            transition: background 0.5s ease;
+        }
+
+        /* --- Page Container Styles --- */
+        .page-container {
+            display: none; /* All pages are hidden by default */
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .page-container.active {
+            display: block; /* Only the active page is visible */
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- Input Card (Page 1) Styles --- */
+        .input-card, .weather-card {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+            text-align: center;
+            width: 320px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .input-card:hover, .weather-card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 12px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        #city-input {
+            width: calc(100% - 22px);
+            padding: 12px;
+            margin-bottom: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        #search-btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            background: linear-gradient(135deg, #007bff, #00c6ff);
+            color: white; 
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s ease, transform 0.2s ease;
+        }
+
+        #search-btn:hover {
+            background: linear-gradient(135deg, #0056b3, #0096c7);
+            transform: translateY(-2px);
+        }
+
+        /* --- Weather Details (Page 2) Styles --- */
+        #weather-info-details h2 {
+            font-size: 28px;
+            margin-top: 5px;
+        }
+
+        #weather-info-details p {
+            font-size: 16px;
+            line-height: 1.5;
+            margin: 8px 0;
+        }
+
+        #temperature {
+            font-size: 40px;
+            font-weight: bold;
+            margin: 10px 0;
+            color: #ff5722; /* Highlight temperature */
+        }
+        
+        #back-btn {
+            margin-top: 20px;
+            padding: 8px 15px;
+            border: 1px solid #ccc;
+            background-color: #f1f1f1;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    
+    <div id="input-page" class="page-container active">
+        <div class="input-card">
+            <h1>Weather App ☁️</h1>
+            <input type="text" id="city-input" placeholder="Enter city name">
+            <button id="search-btn">Show Details</button>
+        </div>
+    </div>
+
+    <div id="details-page" class="page-container">
+        <div class="weather-card">
+            <h1 id="city-name-header">Weather Details</h1>
+            <div id="weather-info-details">
+                <p id="temperature"></p>
+                <p id="description"></p>
+                <p id="humidity"></p>
+                <p id="wind-speed"></p>
+                <button id="back-btn">← Go Back</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- DOM Elements ---
+        const inputPage = document.getElementById("input-page");
+        const detailsPage = document.getElementById("details-page");
+        
+        const cityInput = document.getElementById("city-input");
+        const searchBtn = document.getElementById("search-btn");
+        const backBtn = document.getElementById("back-btn");
+        
+        const cityNameHeader = document.getElementById("city-name-header");
+        const temperature = document.getElementById("temperature");
+        const description = document.getElementById("description");
+        const humidity = document.getElementById("humidity");
+        const windSpeed = document.getElementById("wind-speed");
+
+        // --- Configuration ---
+        const API_KEY = "043aa3f3dfcc0cc451d7c3c8d2dab5a2";
+        const BASE_URL = "https://api.openweathermap.org/data/2.5/weather";
+
+        // --- Navigation Functions ---
+        function showPage(pageId) {
+            inputPage.classList.remove('active');
+            detailsPage.classList.remove('active');
+            document.getElementById(pageId).classList.add('active');
+        }
+
+        // --- Event Listeners ---
+        searchBtn.addEventListener("click", () => {
+            const city = cityInput.value.trim();
+            if (city) {
+                // When "Show Details" is clicked, fetch data and show the details page
+                fetchWeather(city);
+            } else {
+                alert("Please enter a city name.");
+            }
+        });
+
+        backBtn.addEventListener("click", () => {
+            // When "Go Back" is clicked, show the input page
+            showPage('input-page');
+            cityInput.value = ""; // Clear input for next search
+        });
+
+        // --- API and Display Logic ---
+        async function fetchWeather(city) {
+            const url = `${BASE_URL}?q=${city}&appid=${API_KEY}&units=metric`;
+            try {
+                const response = await fetch(url);
+
+                if (!response.ok) {
+                    throw new Error(`City not found or API error: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                displayWeather(data);
+                showPage('details-page'); // Switch to the details page on success!
+
+            } catch (error) {
+                alert(error.message);
+            }
+        }
+
+        function displayWeather(data) {
+            cityNameHeader.textContent = `Weather in ${data.name}`;
+            temperature.textContent = `${Math.round(data.main.temp)}°C`;
+            description.textContent = `Condition: ${data.weather[0].description}`;
+            humidity.textContent = `Humidity: ${data.main.humidity}%`;
+            windSpeed.textContent = `Wind Speed: ${data.wind.speed} m/s`;
+        }
+    </script>
+</body>
+</html>

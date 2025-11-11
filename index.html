@@ -18,17 +18,17 @@
             transition: background-color 0.8s ease;
         }
 
-        /* Default Day Background */
+        /* 🔄 NEW Day Background: Warm Sunset/Sunrise Gradient */
         body {
-            background: linear-gradient(135deg, #74ebd5, #9face6); 
+            background: linear-gradient(135deg, #fceabb, #f8b500); /* Yellow/Orange */
         }
         
-        /* Nighttime Class */
+        /* 🌑 NEW Nighttime Class: Deep Blue/Violet Gradient */
         body.night {
-            background: linear-gradient(135deg, #2c3e50, #4a5d6f); 
+            background: linear-gradient(135deg, #1f1c2c, #432889); /* Deep Purple/Indigo */
         }
 
-        /* --- Page Container Styles --- */
+        /* --- Page Container Styles (Unchanged) --- */
         .page-container {
             display: none; 
             animation: fadeIn 0.5s ease-out;
@@ -69,7 +69,7 @@
             margin-top: 0;
         }
 
-        /* --- Input and Button Styles --- */
+        /* --- Input and Button Styles (Unchanged) --- */
         #city-input {
             width: calc(100% - 24px);
             padding: 12px;
@@ -99,7 +99,7 @@
             transform: translateY(-2px);
         }
         
-        /* --- Weather Details Styles (Adjusted for transparency) --- */
+        /* --- Weather Details Styles (Unchanged) --- */
         #weather-info-details h2 {
             font-size: 28px;
             font-weight: 700;
@@ -139,7 +139,7 @@
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
         }
 
-        /* AQI Styling */
+        /* AQI Styling (Unchanged) */
         #aqi-display {
             padding: 10px;
             margin: 15px 0;
@@ -150,13 +150,12 @@
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
-        /* AQI Level Colors (These are the "real-time" status colors based on the API index 1-5) */
         .aqi-display { text-align: center; }
-        .aqi-1 { background-color: #55a84f; } /* Good */
-        .aqi-2 { background-color: #a3c853; } /* Fair */
-        .aqi-3 { background-color: #fdd64b; color: #333;} /* Moderate */
-        .aqi-4 { background-color: #ff8a3d; } /* Poor */
-        .aqi-5 { background-color: #ff5555; } /* Very Poor */
+        .aqi-1 { background-color: #55a84f; } 
+        .aqi-2 { background-color: #a3c853; } 
+        .aqi-3 { background-color: #fdd64b; color: #333;} 
+        .aqi-4 { background-color: #ff8a3d; } 
+        .aqi-5 { background-color: #ff5555; } 
 
         .data-grid {
             display: grid;
@@ -254,7 +253,7 @@
     </div>
 
     <script>
-        // --- DOM Elements ---
+        // --- JAVASCRIPT LOGIC (UNCHANGED) ---
         const body = document.body;
         const inputPage = document.getElementById("input-page");
         const detailsPage = document.getElementById("details-page");
@@ -280,7 +279,6 @@
         const AQI_URL = "https://api.openweathermap.org/data/2.5/air_pollution";
         const ICON_URL = "https://openweathermap.org/img/wn/"; 
         
-        // AQI status mapping (1 is best, 5 is worst)
         const AQI_STATUS = {
             1: "Good", 2: "Fair", 3: "Moderate", 
             4: "Poor", 5: "Very Poor"
@@ -333,12 +331,10 @@
 
                 const weatherData = await response.json();
                 
-                // Get coordinates for AQI call
                 const { lat, lon } = weatherData.coord; 
                 
                 displayWeather(weatherData);
 
-                // Fetch Air Quality using coordinates
                 await fetchAirQuality(lat, lon);
 
                 showPage('details-page'); 
@@ -350,7 +346,6 @@
         }
         
         async function fetchAirQuality(lat, lon) {
-            // This API returns the AQI index (1-5) as the 'main.aqi' value, which is the "real-time value"
             const aqiUrl = `${AQI_URL}?lat=${lat}&lon=${lon}&appid=${API_KEY}`;
              try {
                 const response = await fetch(aqiUrl);
@@ -375,14 +370,11 @@
             weatherIcon.src = `${ICON_URL}${iconCode}@2x.png`;
             weatherIcon.alt = data.weather[0].description;
             
-            // Display main data
             temperature.textContent = `${Math.round(data.main.temp)}°C`;
             description.textContent = data.weather[0].description;
             
-            // "Feels Like" is now included
             feelsLike.textContent = `Feels like: ${Math.round(data.main.feels_like)}°C`;
             
-            // Display extra data
             humidity.textContent = `${data.main.humidity}%`;
             windSpeed.textContent = `${data.wind.speed.toFixed(1)} m/s`;
             pressure.textContent = `${data.main.pressure} hPa`;
@@ -390,13 +382,11 @@
         }
 
         function displayAirQuality(data) {
-            // Retrieve the AQI index (the real-time value)
             const aqi = data.list[0].main.aqi;
             const status = AQI_STATUS[aqi];
             
             aqiDisplay.textContent = `Air Quality Index (AQI): ${aqi} (${status})`;
             
-            // Apply color class based on the index
             aqiDisplay.className = `aqi-display aqi-${aqi}`;
         }
     </script>

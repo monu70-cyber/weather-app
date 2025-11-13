@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -388,6 +388,480 @@
             aqiDisplay.textContent = `Air Quality Index (AQI): ${aqi} (${status})`;
             
             aqiDisplay.className = `aqi-display aqi-${aqi}`;
+        }
+    </script>
+</body>
+</html> -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Weather App</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- General and Dynamic Background --- */
+        body {
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            transition: background-color 0.8s ease;
+        }
+
+        /* Day Background */
+        body {
+            background: linear-gradient(135deg, #fceabb, #f8b500); 
+        }
+        
+        /* Nighttime Class */
+        body.night {
+            background: linear-gradient(135deg, #1f1c2c, #432889); 
+        }
+
+        /* --- Page Container Styles (Unchanged) --- */
+        .page-container {
+            display: none; 
+            animation: fadeIn 0.5s ease-out;
+            max-width: 350px;
+            width: 90%;
+        }
+
+        .page-container.active {
+            display: block; 
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- Card Styles --- */
+        .input-card {
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.25);
+            text-align: center;
+            backdrop-filter: blur(5px);
+        }
+
+        /* KEY CHANGE: Make the weather-card content transparent on the details page */
+        #details-page .weather-card {
+            background-color: transparent;
+            padding: 0;
+            box-shadow: none;
+            backdrop-filter: none;
+        }
+        
+        h1 {
+            font-weight: 600;
+            color: #333;
+            margin-top: 0;
+        }
+
+        /* --- Input and Button Styles (Unchanged) --- */
+        #city-input {
+            width: calc(100% - 24px);
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            text-align: center;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        #search-btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            background: linear-gradient(45deg, #ff5e62, #ff9966); 
+            color: white; 
+            font-size: 18px;
+            font-weight: 600;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        #search-btn:hover {
+            box-shadow: 0 5px 15px rgba(255, 94, 98, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        /* --- Weather Details Styles (Unchanged) --- */
+        #weather-info-details h2 {
+            font-size: 28px;
+            font-weight: 700;
+            margin: 5px 0 15px 0;
+            color: white;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+        }
+
+        #weather-icon {
+            width: 100px;
+            height: 100px;
+            margin: 10px auto 15px auto;
+            filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.3));
+        }
+
+        #temperature {
+            font-size: 80px; 
+            font-weight: 700;
+            margin: 0;
+            color: white;
+            line-height: 1;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.6);
+        }
+        
+        #feels-like {
+            font-size: 16px;
+            color: #f0f0f0; 
+            margin-bottom: 5px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        #description {
+            font-size: 20px;
+            text-transform: capitalize;
+            color: white;
+            margin-bottom: 20px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        /* AQI Styling (Updated to use US EPA colors) */
+        #aqi-display {
+            padding: 10px;
+            margin: 15px 0;
+            border-radius: 10px;
+            color: white;
+            font-weight: 600;
+            font-size: 16px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .aqi-display { text-align: center; }
+        /* US EPA AQI Colors */
+        .aqi-good { background-color: #00e400; } /* 0-50 */
+        .aqi-moderate { background-color: #ffff00; color: #333;} /* 51-100 */
+        .aqi-unhealthysensitive { background-color: #ff7e00; } /* 101-150 */
+        .aqi-unhealthy { background-color: #ff0000; } /* 151-200 */
+        .aqi-veryunhealthy { background-color: #8f3f97; } /* 201-300 */
+        .aqi-hazardous { background-color: #7e0023; } /* 301+ */
+
+
+        .data-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 10px;
+            padding: 15px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .data-item {
+            text-align: left;
+            padding: 5px;
+        }
+        
+        .data-item span {
+            display: block;
+            font-size: 12px;
+            color: #d0d0d0;
+            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
+        }
+        
+        .data-item strong {
+            font-size: 18px;
+            font-weight: 600;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        #back-btn {
+            margin-top: 25px;
+            padding: 10px 20px;
+            border: none;
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        
+        #back-btn:hover {
+            background-color: rgba(255, 255, 255, 0.4);
+        }
+    </style>
+</head>
+<body>
+    
+    <div id="input-page" class="page-container active">
+        <div class="input-card">
+            <h1>Dynamic Weather 🌤️</h1>
+            <input type="text" id="city-input" placeholder="Enter city name">
+            <button id="search-btn">Show Weather</button>
+        </div>
+    </div>
+
+    <div id="details-page" class="page-container">
+        <div class="weather-card">
+            <h2 id="city-name-header"></h2>
+            
+            <img id="weather-icon" alt="Weather Icon">
+            
+            <div id="temp-section">
+                <span id="temperature"></span>
+                <span id="feels-like"></span> 
+                <span id="description"></span>
+            </div>
+
+            <div id="aqi-display"></div> 
+
+            <div class="data-grid">
+                <div class="data-item">
+                    <span>HUMIDITY</span>
+                    <strong id="humidity"></strong>
+                </div>
+                <div class="data-item">
+                    <span>WIND SPEED</span>
+                    <strong id="wind-speed"></strong>
+                </div>
+                
+                <div class="data-item">
+                    <span>PRESSURE</span>
+                    <strong id="pressure"></strong>
+                </div>
+                <div class="data-item">
+                    <span>VISIBILITY</span>
+                    <strong id="visibility"></strong>
+                </div>
+
+                <div class="data-item">
+                    <span>PM2.5 ($\mu$g/m³)</span>
+                    <strong id="pm25"></strong>
+                </div>
+                <div class="data-item">
+                    <span>OZONE ($\mu$g/m³)</span>
+                    <strong id="ozone"></strong>
+                </div>
+            </div>
+
+            <button id="back-btn">← New Search</button>
+        </div>
+    </div>
+
+    <script>
+        // --- DOM Elements ---
+        const body = document.body;
+        const inputPage = document.getElementById("input-page");
+        const detailsPage = document.getElementById("details-page");
+        const cityInput = document.getElementById("city-input");
+        const searchBtn = document.getElementById("search-btn");
+        const backBtn = document.getElementById("back-btn");
+        
+        const cityNameHeader = document.getElementById("city-name-header");
+        const weatherIcon = document.getElementById("weather-icon");
+        const temperature = document.getElementById("temperature");
+        const feelsLike = document.getElementById("feels-like");
+        const description = document.getElementById("description");
+        const aqiDisplay = document.getElementById("aqi-display");
+        const humidity = document.getElementById("humidity");
+        const windSpeed = document.getElementById("wind-speed");
+        const pressure = document.getElementById("pressure"); 
+        const visibility = document.getElementById("visibility"); 
+        const pm25 = document.getElementById("pm25");
+        const ozone = document.getElementById("ozone");
+
+        // --- Configuration ---
+        const API_KEY = "043aa3f3dfcc0cc451d7c3c8d2dab5a2"; 
+        const WEATHER_URL = "https://api.openweathermap.org/data/2.5/weather";
+        const AQI_URL = "https://api.openweathermap.org/data/2.5/air_pollution";
+        const ICON_URL = "https://openweathermap.org/img/wn/"; 
+        
+        const US_AQI_RANGES = [
+            {conc: 0.0, AQI: 0, status: "Good", class: "aqi-good"},
+            {conc: 12.0, AQI: 50, status: "Good", class: "aqi-good"},
+            {conc: 35.4, AQI: 100, status: "Moderate", class: "aqi-moderate"},
+            {conc: 55.4, AQI: 150, status: "Unhealthy for Sensitive Groups", class: "aqi-unhealthysensitive"},
+            {conc: 150.4, AQI: 200, status: "Unhealthy", class: "aqi-unhealthy"},
+            {conc: 250.4, AQI: 300, status: "Very Unhealthy", class: "aqi-veryunhealthy"},
+            {conc: 350.4, AQI: 400, status: "Hazardous", class: "aqi-hazardous"},
+            {conc: 500.4, AQI: 500, status: "Hazardous", class: "aqi-hazardous"},
+        ];
+
+        // --- AQI Calculation Function ---
+        function calculateUS_AQI(concentration, pollutantType) {
+            // For OpenWeatherMap, we'll focus on PM2.5 as it's the primary driver of high AQI values (like 400).
+            if (pollutantType !== 'pm2_5') return null;
+
+            let aqi = 0;
+            let status = "N/A";
+            let aqiClass = "";
+            let currentRange = {};
+
+            // Find the correct concentration range
+            for (let i = 1; i < US_AQI_RANGES.length; i++) {
+                if (concentration <= US_AQI_RANGES[i].conc) {
+                    currentRange.low_conc = US_AQI_RANGES[i-1].conc;
+                    currentRange.high_conc = US_AQI_RANGES[i].conc;
+                    currentRange.low_aqi = US_AQI_RANGES[i-1].AQI;
+                    currentRange.high_aqi = US_AQI_RANGES[i].AQI;
+                    status = US_AQI_RANGES[i-1].status;
+                    aqiClass = US_AQI_RANGES[i-1].class;
+                    break;
+                }
+            }
+            
+            // If concentration exceeds highest range
+            if (concentration > US_AQI_RANGES[US_AQI_RANGES.length - 1].conc) {
+                // Use the highest range for calculation, but cap at 500.
+                 currentRange.low_conc = US_AQI_RANGES[US_AQI_RANGES.length - 2].conc;
+                 currentRange.high_conc = US_AQI_RANGES[US_AQI_RANGES.length - 1].conc;
+                 currentRange.low_aqi = US_AQI_RANGES[US_AQI_RANGES.length - 2].AQI;
+                 currentRange.high_aqi = US_AQI_RANGES[US_AQI_RANGES.length - 1].AQI;
+                 status = US_AQI_RANGES[US_AQI_RANGES.length - 2].status;
+                 aqiClass = US_AQI_RANGES[US_AQI_RANGES.length - 2].class;
+            }
+
+
+            // Linear interpolation formula: 
+            // AQI = [(I_high - I_low) / (C_high - C_low)] * (C - C_low) + I_low
+            const slope = (currentRange.high_aqi - currentRange.low_aqi) / (currentRange.high_conc - currentRange.low_conc);
+            aqi = Math.round(slope * (concentration - currentRange.low_conc) + currentRange.low_aqi);
+            
+            // Safety cap at 500
+            aqi = Math.min(aqi, 500);
+
+            return { aqi, status, aqiClass };
+        }
+
+
+        // --- Utility Functions (Unchanged) ---
+        function showPage(pageId) {
+            inputPage.classList.remove('active');
+            detailsPage.classList.remove('active');
+            document.getElementById(pageId).classList.add('active');
+        }
+
+        function setBackground(isDay) {
+            if (isDay) {
+                body.classList.remove('night');
+            } else {
+                body.classList.add('night');
+            }
+        }
+        
+        function convertVisibility(meters) {
+            return (meters / 1000).toFixed(1) + ' km';
+        }
+
+        // --- Event Listeners (Unchanged) ---
+        searchBtn.addEventListener("click", () => {
+            const city = cityInput.value.trim();
+            if (city) {
+                fetchWeatherAndAQI(city);
+            } else {
+                alert("Please enter a city name.");
+            }
+        });
+
+        backBtn.addEventListener("click", () => {
+            showPage('input-page');
+            cityInput.value = ""; 
+        });
+
+        // --- API Logic (Unchanged) ---
+        async function fetchWeatherAndAQI(city) {
+            const weatherUrl = `${WEATHER_URL}?q=${city}&appid=${API_KEY}&units=metric`;
+            try {
+                const response = await fetch(weatherUrl);
+
+                if (!response.ok) {
+                    throw new Error(`City not found or API error: ${response.statusText}`);
+                }
+
+                const weatherData = await response.json();
+                
+                const { lat, lon } = weatherData.coord; 
+                
+                displayWeather(weatherData);
+
+                await fetchAirQuality(lat, lon);
+
+                showPage('details-page'); 
+
+            } catch (error) {
+                alert(error.message);
+                aqiDisplay.textContent = ""; 
+                pm25.textContent = "";
+                ozone.textContent = "";
+            }
+        }
+        
+        async function fetchAirQuality(lat, lon) {
+            const aqiUrl = `${AQI_URL}?lat=${lat}&lon=${lon}&appid=${API_KEY}`;
+             try {
+                const response = await fetch(aqiUrl);
+                const aqiData = await response.json();
+                displayAirQuality(aqiData);
+            } catch (error) {
+                console.error("Failed to fetch AQI data:", error);
+                aqiDisplay.textContent = "Air Quality: N/A";
+                aqiDisplay.className = '';
+                pm25.textContent = "N/A";
+                ozone.textContent = "N/A";
+            }
+        }
+
+
+        // --- Display Logic (Updated) ---
+        function displayWeather(data) {
+            const iconCode = data.weather[0].icon;
+            const isDay = iconCode.slice(-1) === 'd';
+            setBackground(isDay);
+
+            cityNameHeader.textContent = data.name;
+            
+            weatherIcon.src = `${ICON_URL}${iconCode}@2x.png`;
+            weatherIcon.alt = data.weather[0].description;
+            
+            temperature.textContent = `${Math.round(data.main.temp)}°C`;
+            description.textContent = data.weather[0].description;
+            
+            feelsLike.textContent = `Feels like: ${Math.round(data.main.feels_like)}°C`;
+            
+            humidity.textContent = `${data.main.humidity}%`;
+            windSpeed.textContent = `${data.wind.speed.toFixed(1)} m/s`;
+            pressure.textContent = `${data.main.pressure} hPa`;
+            visibility.textContent = convertVisibility(data.visibility);
+        }
+
+        function displayAirQuality(data) {
+            const components = data.list[0].components; 
+
+            // 1. Get PM2.5 concentration (most common driver of high AQI)
+            const pm25_conc = components.pm2_5;
+
+            // 2. Calculate the US EPA AQI based on PM2.5 concentration
+            const aqiResult = calculateUS_AQI(pm25_conc, 'pm2_5');
+            
+            // 3. Update the AQI Display
+            aqiDisplay.textContent = `Air Quality Index (AQI): ${aqiResult.aqi} (${aqiResult.status})`;
+            aqiDisplay.className = `aqi-display ${aqiResult.aqiClass}`;
+            
+            // 4. Display specific pollutant concentrations
+            pm25.textContent = pm25_conc.toFixed(2); 
+            ozone.textContent = components.o3.toFixed(2);
         }
     </script>
 </body>

@@ -1381,7 +1381,7 @@ function generateAI(aqi) {
 </script>
 
 </body>
-</html>-->
+</html>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1687,6 +1687,207 @@ function generateAI(aqi) {
   qs("ai-activity").textContent =
     aqi>=4?"Avoid outdoor activities":
     cond.includes("rain")?"Carry umbrella":"Suitable for outdoor activities";
+}
+</script>
+
+</body>
+</html>-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dynamic Weather</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(#f9d976, #f39f86);
+  color: #fff;
+}
+
+.app {
+  padding: 20px;
+}
+
+h1 {
+  font-size: 64px;
+  margin: 10px 0;
+}
+
+#aqlabel {
+  margin-top: 5px;
+  font-size: 14px;
+}
+
+/* AQI CARD */
+.aqi-card {
+  background: rgba(0,0,0,0.25);
+  padding: 15px;
+  border-radius: 15px;
+  margin-top: 20px;
+}
+
+/* DARK AQI GRADIENT BAR */
+.aqi-bar {
+  position: relative;
+  height: 8px;
+  margin-top: 12px;
+  border-radius: 10px;
+  background: linear-gradient(
+    90deg,
+    #1b5e20,
+    #558b2f,
+    #f9a825,
+    #ef6c00,
+    #b71c1c
+  );
+}
+
+/* DARK OVERLAY FILL */
+#aqi-fill {
+  position: absolute;
+  height: 100%;
+  width: 0%;
+  background: rgba(0,0,0,0.35);
+}
+
+/* MOVING DOT */
+#aqi-dot {
+  position: absolute;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  background: white;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 8px rgba(0,0,0,0.7);
+}
+
+/* WEATHER DETAILS */
+.details {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.details div {
+  background: rgba(0,0,0,0.2);
+  padding: 10px;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+.details span {
+  font-weight: bold;
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+  <h2 id="city">Lucknow</h2>
+  <h1 id="temp">--°C</h1>
+  <p id="desc">Loading...</p>
+
+  <!-- AQI -->
+  <div class="aqi-card">
+    <h3 id="aqi-title">AQI --</h3>
+    <p id="aqi-message">Checking air quality...</p>
+
+    <div class="aqi-bar">
+      <div id="aqi-fill"></div>
+      <div id="aqi-dot"></div>
+    </div>
+  </div>
+
+  <!-- WEATHER DETAILS -->
+  <div class="details">
+    <div>Humidity <span id="humidity">--%</span></div>
+    <div>Wind <span id="wind">-- m/s</span></div>
+    <div>Pressure <span id="pressure">-- hPa</span></div>
+    <div>Visibility <span id="visibility">-- km</span></div>
+    <div>Sunrise <span id="sunrise">--:--</span></div>
+    <div>Sunset <span id="sunset">--:--</span></div>
+    <div>PM2.5 <span id="pm25">--</span></div>
+    <div>Ozone <span id="ozone">--</span></div>
+  </div>
+
+</div>
+
+<script>
+const API_KEY = "YOUR_API_KEY_HERE";
+const CITY = "Lucknow";
+
+const qs = (id) => document.getElementById(id);
+
+/* FETCH WEATHER DATA */
+fetch(`https://api.openweathermap.org/data/2.5/weather?q=${CITY}&units=metric&appid=${API_KEY}`)
+.then(res => res.json())
+.then(data => {
+
+  qs("temp").textContent = Math.round(data.main.temp) + "°C";
+  qs("desc").textContent = data.weather[0].description;
+  qs("humidity").textContent = data.main.humidity + "%";
+  qs("wind").textContent = data.wind.speed + " m/s";
+  qs("pressure").textContent = data.main.pressure + " hPa";
+  qs("visibility").textContent = (data.visibility / 1000) + " km";
+
+  const sunrise = new Date(data.sys.sunrise * 1000);
+  const sunset = new Date(data.sys.sunset * 1000);
+
+  qs("sunrise").textContent = sunrise.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+  qs("sunset").textContent = sunset.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+
+  fetchAQI(data.coord.lat, data.coord.lon);
+});
+
+/* FETCH AQI */
+function fetchAQI(lat, lon) {
+  fetch(`https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${API_KEY}`)
+  .then(res => res.json())
+  .then(aqiData => {
+
+    const pm25 = aqiData.list[0].components.pm2_5;
+    const ozone = aqiData.list[0].components.o3;
+
+    qs("pm25").textContent = pm25.toFixed(2);
+    qs("ozone").textContent = ozone.toFixed(2);
+
+    /* REAL AQI (0–500) */
+    const realAQI = Math.round(pm25 * 4);
+    const percent = Math.min((realAQI / 500) * 100, 100);
+
+    qs("aqi-dot").style.left = percent + "%";
+    qs("aqi-fill").style.width = percent + "%";
+
+    let label = "";
+    let message = "";
+
+    if (realAQI <= 50) {
+      label = "Good";
+      message = "Air quality is satisfactory.";
+    } else if (realAQI <= 100) {
+      label = "Moderate";
+      message = "Air quality is acceptable.";
+    } else if (realAQI <= 200) {
+      label = "Poor";
+      message = "Sensitive groups may be affected.";
+    } else if (realAQI <= 300) {
+      label = "Very Poor";
+      message = "Health effects for everyone.";
+    } else {
+      label = "Severe";
+      message = "Avoid outdoor activity.";
+    }
+
+    qs("aqi-title").textContent = `${label} • ${realAQI}`;
+    qs("aqi-message").textContent = message;
+  });
 }
 </script>
 

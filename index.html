@@ -1382,7 +1382,7 @@ function generateAI(aqi) {
 
 </body>
 </html>-->
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -1690,5 +1690,256 @@ function generateAI(aqi) {
 }
 </script>
 
+</body>
+</html> -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dynamic Weather App</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+body{
+  font-family:Poppins,sans-serif;
+  min-height:100vh;
+  margin:0;
+  display:flex;
+  justify-content:center;
+  background:linear-gradient(135deg,#fceabb,#f8b500);
+  transition:.8s;
+}
+body.night{
+  background:linear-gradient(135deg,#1f1c2c,#432889);
+}
+
+.page-container{
+  position:absolute;
+  max-width:360px;
+  width:90%;
+  opacity:0;
+  pointer-events:none;
+  transform:scale(.97);
+  transition:.3s;
+}
+.page-container.active{
+  opacity:1;
+  pointer-events:auto;
+  transform:scale(1);
+}
+
+.input-card{
+  background:rgba(255,255,255,.95);
+  padding:30px;
+  border-radius:20px;
+  text-align:center;
+  box-shadow:0 15px 30px rgba(0,0,0,.25);
+}
+
+#city-input{
+  width:100%;
+  padding:12px;
+  border-radius:10px;
+  border:1px solid #ddd;
+  margin-bottom:15px;
+  text-align:center;
+}
+
+#search-btn{
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:10px;
+  font-size:18px;
+  color:white;
+  cursor:pointer;
+  background:linear-gradient(45deg,#ff5e62,#ff9966);
+}
+
+h2{color:white;text-align:center}
+#weather-icon{display:block;margin:auto;width:100px}
+#temperature{
+  font-size:72px;
+  color:white;
+  text-align:center;
+  text-shadow:0 3px 6px rgba(0,0,0,.9);
+}
+#feels-like,#description{text-align:center;color:#f1f1f1}
+
+/* AQI CARD */
+#aqi-card{
+  background:rgba(0,0,0,.35);
+  border-radius:15px;
+  padding:15px;
+  margin:15px 0;
+  color:white;
+}
+
+#aqi-title{font-size:22px;font-weight:600}
+#aqi-message{font-size:13px;margin:5px 0 10px}
+
+/* AQI BAR */
+.aqi-bar{
+  position:relative;
+  height:8px;
+  border-radius:10px;
+  background:linear-gradient(
+    90deg,
+    #1e7f32,
+    #7bc043,
+    #fdd64b,
+    #ff8a3d,
+    #d32f2f,
+    #7b1fa2
+  );
+}
+
+#aqi-dot{
+  position:absolute;
+  top:50%;
+  width:14px;
+  height:14px;
+  background:white;
+  border-radius:50%;
+  transform:translate(-50%,-50%);
+  box-shadow:0 0 8px rgba(0,0,0,.7);
+}
+
+/* DATA GRID */
+.data-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+  padding:15px;
+  border-radius:12px;
+  background:rgba(0,0,0,.35);
+}
+.data-item span{font-size:12px;color:#ffd966}
+.data-item strong{font-size:17px;color:white}
+
+#ai-weather{color:#00eaff}
+#ai-clothing{color:#90ee90}
+#ai-activity{color:#ffb347}
+
+#back-btn{
+  margin-top:20px;
+  width:100%;
+  padding:10px;
+  border:none;
+  border-radius:10px;
+  background:rgba(255,255,255,.25);
+  color:white;
+  cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div id="input-page" class="page-container active">
+  <div class="input-card">
+    <h1>Dynamic Weather 🌤️</h1>
+    <input id="city-input" placeholder="Enter city name">
+    <button id="search-btn">Show Weather</button>
+  </div>
+</div>
+
+<div id="details-page" class="page-container">
+  <h2 id="city-name"></h2>
+  <img id="weather-icon">
+  <div id="temperature"></div>
+  <div id="feels-like"></div>
+  <div id="description"></div>
+
+  <div id="aqi-card">
+    <div id="aqi-title"></div>
+    <div id="aqi-message"></div>
+    <div class="aqi-bar">
+      <div id="aqi-dot"></div>
+    </div>
+  </div>
+
+  <div class="data-grid">
+    <div class="data-item"><span>HUMIDITY</span><strong id="humidity"></strong></div>
+    <div class="data-item"><span>WIND</span><strong id="wind"></strong></div>
+    <div class="data-item"><span>PRESSURE</span><strong id="pressure"></strong></div>
+    <div class="data-item"><span>VISIBILITY</span><strong id="visibility"></strong></div>
+  </div>
+
+  <div class="data-grid" style="margin-top:15px">
+    <div class="data-item"><span>AI WEATHER</span><strong id="ai-weather"></strong></div>
+    <div class="data-item"><span>CLOTHING</span><strong id="ai-clothing"></strong></div>
+    <div class="data-item"><span>ACTIVITY</span><strong id="ai-activity"></strong></div>
+  </div>
+
+  <button id="back-btn">← New Search</button>
+</div>
+
+<script>
+const API_KEY="043aa3f3dfcc0cc451d7c3c8d2dab5a2";
+const WEATHER_URL="https://api.openweathermap.org/data/2.5/weather";
+const AQI_URL="https://api.openweathermap.org/data/2.5/air_pollution";
+const ICON_URL="https://openweathermap.org/img/wn/";
+const qs=id=>document.getElementById(id);
+let currentWeather;
+
+qs("search-btn").onclick=async()=>{
+  const city=qs("city-input").value.trim();
+  if(!city)return alert("Enter city name");
+
+  const res=await fetch(`${WEATHER_URL}?q=${city}&appid=${API_KEY}&units=metric`);
+  if(!res.ok)return alert("City not found");
+  currentWeather=await res.json();
+
+  qs("city-name").textContent=currentWeather.name;
+  qs("weather-icon").src=`${ICON_URL}${currentWeather.weather[0].icon}@2x.png`;
+  qs("temperature").textContent=Math.round(currentWeather.main.temp)+"°C";
+  qs("feels-like").textContent=`Feels like ${Math.round(currentWeather.main.feels_like)}°C`;
+  qs("description").textContent=currentWeather.weather[0].description;
+
+  qs("humidity").textContent=currentWeather.main.humidity+"%";
+  qs("wind").textContent=currentWeather.wind.speed+" m/s";
+  qs("pressure").textContent=currentWeather.main.pressure+" hPa";
+  qs("visibility").textContent=(currentWeather.visibility/1000).toFixed(1)+" km";
+
+  const {lat,lon}=currentWeather.coord;
+  const aqiRes=await fetch(`${AQI_URL}?lat=${lat}&lon=${lon}&appid=${API_KEY}`);
+  const aqiData=await aqiRes.json();
+
+  const pm25=aqiData.list[0].components.pm2_5;
+  const aqi=Math.min(Math.round(pm25*4),500);
+
+  let label,msg;
+  if(aqi<=50){label="Good";msg="Air quality is satisfactory."}
+  else if(aqi<=100){label="Moderate";msg="Acceptable air quality."}
+  else if(aqi<=200){label="Poor";msg="Everyone may experience health effects."}
+  else if(aqi<=300){label="Very Poor";msg="Health alert: avoid outdoor activities."}
+  else{label="Severe";msg="Emergency conditions. Stay indoors."}
+
+  qs("aqi-title").textContent=`${label} ${aqi}`;
+  qs("aqi-message").textContent=msg;
+  qs("aqi-dot").style.left=Math.min(aqi/500*100,100)+"%";
+
+  generateAI(aqi);
+
+  qs("input-page").classList.remove("active");
+  qs("details-page").classList.add("active");
+};
+
+qs("back-btn").onclick=()=>{
+  qs("details-page").classList.remove("active");
+  qs("input-page").classList.add("active");
+};
+
+function generateAI(aqi){
+  const t=currentWeather.main.temp;
+  const cond=currentWeather.weather[0].main.toLowerCase();
+
+  qs("ai-weather").textContent=`${t>30?"Hot":t<10?"Cold":"Moderate"} weather with ${cond}.`;
+  qs("ai-clothing").textContent=t>30?"Light cotton clothes":t<10?"Warm clothes":"Light jacket recommended";
+  qs("ai-activity").textContent=aqi>150?"Avoid outdoor activities":"Outdoor activities are okay";
+}
+</script>
 </body>
 </html>

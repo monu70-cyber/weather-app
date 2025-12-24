@@ -1825,13 +1825,31 @@ h2{color:white;text-align:center}
 #back-btn{
   margin-top:20px;
   width:100%;
-  padding:10px;
+  padding:12px;
   border:none;
-  border-radius:10px;
-  background:rgba(255,255,255,.25);
-  color:white;
-  cursor:pointer;
+  border-radius:12px;
+  background: linear-gradient(
+    135deg,
+    rgba(120, 80, 20, 0.85),
+    rgba(90, 60, 15, 0.95)
+  );
+  color: #fff;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.25);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
+
+#back-btn:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(0,0,0,0.35);
+}
+
+#back-btn:active{
+  transform: scale(0.98);
+}
+
 </style>
 </head>
 
